@@ -9,7 +9,8 @@ defmodule KPD.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      releases: releases()
     ]
   end
 
@@ -32,6 +33,7 @@ defmodule KPD.MixProject do
       {:nimble_csv, "~> 1.2"},
       {:bandit, "~> 1.8"},
       {:plug, "~> 1.16"},
+      {:burrito, "~> 1.0"},
       {:exsync, "~> 0.4", only: :dev},
       {:tidewave, "~> 0.4", only: :dev}
     ]
@@ -45,6 +47,25 @@ defmodule KPD.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       start:
         "run --no-halt -e 'Agent.start(fn -> Bandit.start_link(plug: Tidewave, port: 8080) end)'"
+    ]
+  end
+
+  def releases do
+    [
+      kpd_server: [
+        steps: [:assemble, &Burrito.wrap/1],
+        burrito: [
+          targets: [
+            macos_intel: [os: :darwin, cpu: :x86_64],
+            macos_apple_silicon: [os: :darwin, cpu: :aarch64],
+            linux_amd64: [os: :linux, cpu: :x86_64],
+            linux_arm64: [os: :linux, cpu: :aarch64]
+          ],
+          extra_steps: [
+            patch: [post: [KPD.Release.ImportDataStep]]
+          ]
+        ]
+      ]
     ]
   end
 end

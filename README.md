@@ -2,6 +2,8 @@
 
 KPD (Klasifikacija Proizvoda po Djelatnostima) as a Service - An Elixir service for querying hierarchical Croatian product classification data.
 
+**Distributable as a single executable** via [Burrito](https://github.com/burrito-elixir/burrito) - no Erlang/Elixir installation required!
+
 ## Overview
 
 This service provides a way to list and search through hierarchical KPD product classification data with 6 levels of nesting. Each product class has:
@@ -176,8 +178,8 @@ Configure the HTTP server in your environment config:
 ```elixir
 # config/dev.exs
 config :kpd,
-  start_http_server: true,
-  http_port: 4000,
+  server: true,
+  port: 4000,
   enable_exsync: true
 ```
 
@@ -342,6 +344,129 @@ Reset the database:
 
 ```bash
 mix ecto.reset
+```
+
+## Building Standalone Executables with Burrito
+
+The project is configured to build self-contained executables using Burrito. The executable includes:
+- The compiled Elixir application
+- The Erlang runtime (ERTS)
+- A pre-populated SQLite database with all KPD classification data
+
+### Prerequisites
+
+Install the required build tools:
+
+```bash
+# macOS
+brew install zig xz
+
+# Ubuntu/Debian
+sudo apt install zig xz-utils
+
+# Or download Zig directly from https://ziglang.org/download/
+```
+
+For Windows targets, you also need 7-Zip (`7z`).
+
+### Building the Release
+
+Build for all configured targets:
+
+```bash
+MIX_ENV=prod mix release
+```
+
+Build for a specific target:
+
+```bash
+# macOS Apple Silicon
+MIX_ENV=prod BURRITO_TARGET=macos_apple_silicon mix release
+
+# macOS Intel
+MIX_ENV=prod BURRITO_TARGET=macos_intel mix release
+
+# Linux AMD64
+MIX_ENV=prod BURRITO_TARGET=linux_amd64 mix release
+
+# Linux ARM64
+MIX_ENV=prod BURRITO_TARGET=linux_arm64 mix release
+```
+
+The built executables will be in the `burrito_out/` directory.
+
+### Running the Executable
+
+Run the server with default settings (port 4000, bind to 0.0.0.0):
+
+```bash
+./kpd_server
+```
+
+### Environment Variables
+
+Configure the server at runtime using environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | HTTP port to listen on | `4000` |
+| `IP` | IP address to bind to | `0.0.0.0` |
+| `SERVER` | Start HTTP server (`true`/`false`) | `true` |
+
+Examples:
+
+```bash
+# Run on a different port
+PORT=8080 ./kpd_server
+
+# Bind to localhost only
+IP=127.0.0.1 ./kpd_server
+
+# Custom port and IP
+IP=127.0.0.1 PORT=3000 ./kpd_server
+
+# Don't start the HTTP server (useful for debugging)
+SERVER=false ./kpd_server
+```
+
+### Build Targets
+
+The following targets are pre-configured:
+
+| Target | OS | Architecture |
+|--------|-----|--------------|
+| `macos_intel` | macOS | x86_64 |
+| `macos_apple_silicon` | macOS | ARM64 (M1/M2/M3) |
+| `linux_amd64` | Linux | x86_64 |
+| `linux_arm64` | Linux | ARM64 |
+
+### How It Works
+
+During the build process:
+1. The Mix release is assembled
+2. A custom build step (`KPD.Release.ImportDataStep`) runs in the patch phase
+3. This step creates a fresh SQLite database, runs migrations, and imports all KPD data from `priv/data/kpd-2025.csv.gz`
+4. The FTS (Full-Text Search) index is rebuilt
+5. Burrito packages everything into a self-extracting executable
+
+At runtime:
+1. The executable extracts its payload to a cache directory (first run only)
+2. The bundled Erlang runtime starts your application
+3. The pre-populated database is ready to use immediately
+
+### Maintenance Commands
+
+Burrito includes built-in maintenance commands:
+
+```bash
+# Show installation directory
+./kpd_server maintenance directory
+
+# Uninstall extracted payload
+./kpd_server maintenance uninstall
+
+# Show binary metadata
+./kpd_server maintenance meta
 ```
 
 ## License

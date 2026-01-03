@@ -15,9 +15,10 @@ defmodule KPD.Application do
   end
 
   defp http_server_child do
-    if Application.get_env(:kpd, :start_http_server, false) do
-      port = Application.get_env(:kpd, :http_port, 4000)
-      [{Bandit, plug: KPD.Api.Router, port: port}]
+    if Application.get_env(:kpd, :server, false) do
+      port = Application.get_env(:kpd, :port, 4000)
+      ip = Application.get_env(:kpd, :ip, {0, 0, 0, 0})
+      [{Bandit, plug: KPD.Api.Router, port: port, ip: ip}]
     else
       []
     end

@@ -25,3 +25,6 @@ kpd-*.tar
 # Database files
 *.db
 *.db-*
+
+# Burrito output binaries
+burrito_out/

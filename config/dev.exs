@@ -9,8 +9,8 @@ config :kpd, KPD.Repo,
 
 # HTTP server configuration
 config :kpd,
-  start_http_server: true,
-  http_port: 4000,
+  server: true,
+  port: 4000,
   enable_exsync: true
 
 config :logger, :console,
