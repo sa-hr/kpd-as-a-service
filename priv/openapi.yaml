@@ -1,0 +1,525 @@
+openapi: 3.0.3
+info:
+  title: KPD Product Classification API
+  description: |
+    REST API for the Croatian Product Classification (Klasifikacija Proizvoda po Djelatnostima - KPD) system.
+
+    This API provides endpoints for listing, searching, and navigating through a hierarchical classification
+    system with 6 levels of product categories. The data includes both Croatian and English names for all
+    classifications.
+
+    ## Hierarchy Levels
+    - Level 1: Sections (e.g., "A")
+    - Level 2: Divisions (e.g., "A01")
+    - Level 3: Groups (e.g., "A01.1")
+    - Level 4: Classes (e.g., "A01.11")
+    - Level 5: Categories (e.g., "A01.11.1")
+    - Level 6: Subcategories (e.g., "A01.11.11")
+  version: 1.0.0
+  contact:
+    name: KPD as a Service
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:4000
+    description: Development server
+
+tags:
+  - name: Product Classes
+    description: Operations for listing and retrieving product classifications
+  - name: Search
+    description: Search operations for finding product classifications
+  - name: Hierarchy
+    description: Operations for navigating the classification hierarchy
+  - name: Statistics
+    description: Statistical information about the classification database
+  - name: Health
+    description: Service health checks
+
+paths:
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns the health status of the service
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/stats:
+    get:
+      tags:
+        - Statistics
+      summary: Get database statistics
+      description: Returns statistics about the product classification database including total count and breakdown by level
+      operationId: getStats
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+
+  /api/product_classes:
+    get:
+      tags:
+        - Product Classes
+      summary: List product classes
+      description: Returns a paginated list of product classes with optional filtering
+      operationId: listProductClasses
+      parameters:
+        - $ref: '#/components/parameters/LevelParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/IncludeExpiredParam'
+      responses:
+        '200':
+          description: List of product classes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+
+  /api/product_classes/roots:
+    get:
+      tags:
+        - Product Classes
+      summary: List root categories
+      description: Returns all level 1 (Section) product classes
+      operationId: listRoots
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/IncludeExpiredParam'
+      responses:
+        '200':
+          description: List of root product classes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+
+  /api/product_classes/search:
+    get:
+      tags:
+        - Search
+      summary: Search product classes by name
+      description: |
+        Searches product classes using fuzzy matching (trigram similarity) on names.
+        Supports searching in Croatian, English, or both languages.
+      operationId: searchProductClasses
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query string
+          schema:
+            type: string
+            minLength: 1
+          example: poljoprivreda
+        - name: lang
+          in: query
+          required: false
+          description: Language to search in
+          schema:
+            type: string
+            enum: [hr, en, all]
+            default: all
+        - $ref: '#/components/parameters/LevelParam'
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 20
+        - $ref: '#/components/parameters/IncludeExpiredParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+        '400':
+          description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/search_by_code:
+    get:
+      tags:
+        - Search
+      summary: Search product classes by code prefix
+      description: Returns product classes whose code starts with the given prefix
+      operationId: searchByCode
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Code prefix to search for
+          schema:
+            type: string
+            minLength: 1
+          example: A01
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 20
+        - $ref: '#/components/parameters/IncludeExpiredParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+        '400':
+          description: Missing or invalid code parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/by_code/{code}:
+    get:
+      tags:
+        - Product Classes
+      summary: Get product class by code
+      description: Returns a single product class by its unique code
+      operationId: getByCode
+      parameters:
+        - $ref: '#/components/parameters/CodeParam'
+      responses:
+        '200':
+          description: Product class found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassSingle'
+        '404':
+          description: Product class not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/by_code/{code}/children:
+    get:
+      tags:
+        - Hierarchy
+      summary: Get children of a product class
+      description: Returns the direct children (next level down) of a product class
+      operationId: getChildren
+      parameters:
+        - $ref: '#/components/parameters/CodeParam'
+        - $ref: '#/components/parameters/IncludeExpiredParam'
+      responses:
+        '200':
+          description: List of child product classes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+        '404':
+          description: Product class not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/by_code/{code}/descendants:
+    get:
+      tags:
+        - Hierarchy
+      summary: Get all descendants of a product class
+      description: Returns all descendants (all levels below) of a product class
+      operationId: getDescendants
+      parameters:
+        - $ref: '#/components/parameters/CodeParam'
+        - $ref: '#/components/parameters/IncludeExpiredParam'
+      responses:
+        '200':
+          description: List of descendant product classes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+        '404':
+          description: Product class not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/by_code/{code}/ancestors:
+    get:
+      tags:
+        - Hierarchy
+      summary: Get ancestors of a product class
+      description: Returns all ancestors from root to the immediate parent of the product class
+      operationId: getAncestors
+      parameters:
+        - $ref: '#/components/parameters/CodeParam'
+      responses:
+        '200':
+          description: List of ancestor product classes (ordered from root to parent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+        '404':
+          description: Product class not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/by_code/{code}/full_path:
+    get:
+      tags:
+        - Hierarchy
+      summary: Get full path to a product class
+      description: Returns the complete path from root to the product class including the class itself
+      operationId: getFullPath
+      parameters:
+        - $ref: '#/components/parameters/CodeParam'
+      responses:
+        '200':
+          description: Full path including ancestors and the product class itself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassList'
+        '404':
+          description: Product class not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/product_classes/by_code/{code}/parent:
+    get:
+      tags:
+        - Hierarchy
+      summary: Get parent of a product class
+      description: Returns the immediate parent of the product class. Returns 404 for root level entries.
+      operationId: getParent
+      parameters:
+        - $ref: '#/components/parameters/CodeParam'
+      responses:
+        '200':
+          description: Parent product class found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassSingle'
+        '404':
+          description: Product class not found or no parent exists (root level)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/openapi.yaml:
+    get:
+      tags:
+        - Health
+      summary: Get OpenAPI specification
+      description: Returns the OpenAPI specification for this API
+      operationId: getOpenApiSpec
+      responses:
+        '200':
+          description: OpenAPI specification
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+
+components:
+  parameters:
+    CodeParam:
+      name: code
+      in: path
+      required: true
+      description: The product class code
+      schema:
+        type: string
+      example: A01.11
+
+    LevelParam:
+      name: level
+      in: query
+      required: false
+      description: Filter by hierarchy level (1-6)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 6
+
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of results to return
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 100
+
+    OffsetParam:
+      name: offset
+      in: query
+      required: false
+      description: Number of results to skip for pagination
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    IncludeExpiredParam:
+      name: include_expired
+      in: query
+      required: false
+      description: Include entries with past end_date
+      schema:
+        type: boolean
+        default: false
+
+  schemas:
+    ProductClass:
+      type: object
+      description: A product classification entry
+      properties:
+        code:
+          type: string
+          description: Official KPD code
+          example: A01.11
+        name_hr:
+          type: string
+          description: Croatian name
+          example: Uzgoj žitarica (osim riže), mahunarki i uljanog sjemenja
+        name_en:
+          type: string
+          description: English name
+          example: Growing of cereals (except rice), leguminous crops and oil seeds
+        level:
+          type: integer
+          description: Hierarchy level (1-6)
+          minimum: 1
+          maximum: 6
+          example: 4
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          description: Date when this classification became valid
+          example: "2025-01-01"
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          description: Date when this classification expires (null if still valid)
+          example: null
+      required:
+        - code
+        - name_hr
+        - name_en
+        - level
+
+    ProductClassList:
+      type: object
+      description: A list of product classes with count
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductClass'
+        count:
+          type: integer
+          description: Number of items in the data array
+          example: 10
+      required:
+        - data
+        - count
+
+    ProductClassSingle:
+      type: object
+      description: A single product class response
+      properties:
+        data:
+          $ref: '#/components/schemas/ProductClass'
+      required:
+        - data
+
+    Stats:
+      type: object
+      description: Database statistics
+      properties:
+        total:
+          type: integer
+          description: Total number of product classes
+          example: 5828
+        by_level:
+          type: object
+          properties:
+            level_1_sections:
+              type: integer
+              description: Count of level 1 entries (Sections)
+              example: 22
+            level_2_divisions:
+              type: integer
+              description: Count of level 2 entries (Divisions)
+              example: 87
+            level_3_groups:
+              type: integer
+              description: Count of level 3 entries (Groups)
+              example: 284
+            level_4_classes:
+              type: integer
+              description: Count of level 4 entries (Classes)
+              example: 644
+            level_5_categories:
+              type: integer
+              description: Count of level 5 entries (Categories)
+              example: 1432
+            level_6_subcategories:
+              type: integer
+              description: Count of level 6 entries (Subcategories)
+              example: 3359
+      required:
+        - total
+        - by_level
+
+    Error:
+      type: object
+      description: Error response
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Product class not found
+      required:
+        - error

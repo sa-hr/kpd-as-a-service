@@ -26,10 +26,12 @@ The classification hierarchy follows this structure:
 ## Features
 
 - **SQLite database** with FTS5 trigram search for fuzzy name matching
+- **HTTP REST API** powered by Bandit and Plug
 - **Hierarchical queries**: get children, descendants, parent, ancestors
 - **Bilingual search**: search in Croatian, English, or both languages
 - **CSV import**: batch import from official DZS (Croatian Bureau of Statistics) CSV files
 - **Validity filtering**: optionally exclude expired entries
+- **OpenAPI 3.0 specification** for API documentation
 
 ## Installation
 
@@ -45,9 +47,152 @@ mix deps.get
 mix ecto.setup
 ```
 
-## Usage
+## HTTP API
 
-### Importing Data
+The service exposes a REST API on port 4000 (configurable). The API is documented using OpenAPI 3.0 specification available at `/api/openapi.yaml`.
+
+### Starting the Server
+
+The HTTP server is enabled by default in dev mode. To start it:
+
+```bash
+iex -S mix
+```
+
+The server will be available at `http://localhost:4000`.
+
+### API Endpoints
+
+#### Health & Statistics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/stats` | Database statistics |
+| GET | `/api/openapi.yaml` | OpenAPI specification |
+
+#### Product Classes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/product_classes` | List product classes (paginated) |
+| GET | `/api/product_classes/roots` | List root categories (level 1) |
+| GET | `/api/product_classes/by_code/{code}` | Get product class by code |
+
+#### Search
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/product_classes/search?q={query}` | Fuzzy search by name |
+| GET | `/api/product_classes/search_by_code?code={prefix}` | Search by code prefix |
+
+#### Hierarchy Navigation
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/product_classes/by_code/{code}/children` | Get direct children |
+| GET | `/api/product_classes/by_code/{code}/descendants` | Get all descendants |
+| GET | `/api/product_classes/by_code/{code}/parent` | Get parent |
+| GET | `/api/product_classes/by_code/{code}/ancestors` | Get all ancestors |
+| GET | `/api/product_classes/by_code/{code}/full_path` | Get full path from root |
+
+### Query Parameters
+
+Common query parameters:
+
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `level` | integer (1-6) | Filter by hierarchy level | - |
+| `limit` | integer | Maximum results | 100 (list), 20 (search) |
+| `offset` | integer | Pagination offset | 0 |
+| `include_expired` | boolean | Include expired entries | false |
+| `lang` | string (hr/en/all) | Search language | all |
+
+### Example Requests
+
+```bash
+# List all root categories
+curl http://localhost:4000/api/product_classes/roots
+
+# Search for "agriculture" in English
+curl "http://localhost:4000/api/product_classes/search?q=agriculture&lang=en"
+
+# Get product class by code
+curl http://localhost:4000/api/product_classes/by_code/A01.11
+
+# Get children of a product class
+curl http://localhost:4000/api/product_classes/by_code/A/children
+
+# Get statistics
+curl http://localhost:4000/api/stats
+```
+
+### Response Format
+
+All responses are JSON. List responses include a `data` array and `count`:
+
+```json
+{
+  "data": [
+    {
+      "code": "A",
+      "name_hr": "Poljoprivreda, šumarstvo i ribarstvo",
+      "name_en": "Agriculture, forestry and fishing",
+      "level": 1,
+      "start_date": "2025-01-01",
+      "end_date": null
+    }
+  ],
+  "count": 1
+}
+```
+
+Single item responses wrap the item in `data`:
+
+```json
+{
+  "data": {
+    "code": "A",
+    "name_hr": "...",
+    ...
+  }
+}
+```
+
+Error responses include an `error` field:
+
+```json
+{
+  "error": "Product class not found"
+}
+```
+
+## Configuration
+
+### HTTP Server
+
+Configure the HTTP server in your environment config:
+
+```elixir
+# config/dev.exs
+config :kpd_as_a_service,
+  start_http_server: true,
+  http_port: 4000,
+  enable_exsync: true
+```
+
+### Auto-Reload
+
+In development mode, the server automatically reloads code when files change (powered by ExSync). This is enabled by default in dev configuration.
+
+To disable auto-reload:
+
+```elixir
+config :kpd_as_a_service,
+  enable_exsync: false
+```
+
+## Importing Data
 
 Import KPD data from a CSV file:
 
@@ -78,9 +223,9 @@ The CSV should have the following columns (from DZS Klasus export):
 
 Data source: https://web.dzs.hr/app/klasus/
 
-### API Functions
+## Elixir API Functions
 
-#### Listing
+### Listing
 
 ```elixir
 # List all product classes (paginated)
@@ -96,7 +241,7 @@ KpdAsAService.list(level: 3)
 KpdAsAService.list(include_expired: true)
 ```
 
-#### Getting Single Entries
+### Getting Single Entries
 
 ```elixir
 # Get by code
@@ -106,7 +251,7 @@ KpdAsAService.get_by_code("A01.11")
 KpdAsAService.get(123)
 ```
 
-#### Hierarchical Queries
+### Hierarchical Queries
 
 ```elixir
 # Get direct children
@@ -125,7 +270,7 @@ KpdAsAService.get_ancestors("A.01.1.1.1.1")
 KpdAsAService.get_full_path("A.01.1.1.1.1")
 ```
 
-#### Searching
+### Searching
 
 ```elixir
 # Search in both Croatian and English names
@@ -144,7 +289,7 @@ KpdAsAService.search("wheat", lang: :en, level: 6, limit: 10)
 KpdAsAService.search_by_code("A01")
 ```
 
-#### Counting
+### Counting
 
 ```elixir
 # Total count

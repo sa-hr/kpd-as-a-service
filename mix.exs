@@ -29,7 +29,10 @@ defmodule KpdAsAService.MixProject do
     [
       {:ecto_sql, "~> 3.12"},
       {:ecto_sqlite3, "~> 0.18"},
-      {:nimble_csv, "~> 1.2"}
+      {:nimble_csv, "~> 1.2"},
+      {:bandit, "~> 1.8"},
+      {:plug, "~> 1.16"},
+      {:exsync, "~> 0.4", only: :dev}
     ]
   end
 

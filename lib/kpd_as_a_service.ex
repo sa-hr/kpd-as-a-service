@@ -13,7 +13,7 @@ defmodule KpdAsAService do
   alias KpdAsAService.ProductClass
 
   @type search_opts :: [
-          {:lang, :hr | :en | :both},
+          {:lang, :hr | :en | :all},
           {:level, 1..6 | nil},
           {:limit, pos_integer()},
           {:offset, non_neg_integer()},
@@ -202,7 +202,7 @@ defmodule KpdAsAService do
   Uses SQLite FTS5 with trigram tokenizer for fuzzy matching.
 
   ## Options
-    - `:lang` - Language to search (:hr, :en, or :both, default: :both)
+    - `:lang` - Language to search (:hr, :en, or :all, default: :all)
     - `:level` - Filter by specific level (1-6)
     - `:limit` - Maximum number of results (default: 20)
     - `:include_expired` - Include entries with past end_date (default: false)
@@ -218,7 +218,7 @@ defmodule KpdAsAService do
   """
   @spec search(String.t(), search_opts()) :: [ProductClass.t()]
   def search(query, opts \\ []) when is_binary(query) do
-    lang = Keyword.get(opts, :lang, :both)
+    lang = Keyword.get(opts, :lang, :all)
     level = Keyword.get(opts, :level)
     limit = Keyword.get(opts, :limit, 20)
     include_expired = Keyword.get(opts, :include_expired, false)
@@ -231,7 +231,7 @@ defmodule KpdAsAService do
       case lang do
         :hr -> "name_hr:\"#{escaped_query}\""
         :en -> "name_en:\"#{escaped_query}\""
-        :both -> "{name_hr name_en}:\"#{escaped_query}\""
+        :all -> "{name_hr name_en}:\"#{escaped_query}\""
       end
 
     # Query using FTS5 and join back to main table
