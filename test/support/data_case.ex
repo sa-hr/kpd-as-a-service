@@ -1,4 +1,4 @@
-defmodule KpdAsAService.DataCase do
+defmodule KPD.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -13,16 +13,16 @@ defmodule KpdAsAService.DataCase do
 
   use ExUnit.CaseTemplate
 
-  alias KpdAsAService.Repo
+  alias KPD.Repo
 
   using do
     quote do
-      alias KpdAsAService.Repo
+      alias KPD.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import KpdAsAService.DataCase
+      import KPD.DataCase
     end
   end
 

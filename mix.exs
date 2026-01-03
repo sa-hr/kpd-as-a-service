@@ -1,9 +1,9 @@
-defmodule KpdAsAService.MixProject do
+defmodule KPD.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :kpd_as_a_service,
+      app: :kpd,
       version: "0.1.0",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -20,7 +20,7 @@ defmodule KpdAsAService.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {KpdAsAService.Application, []}
+      mod: {KPD.Application, []}
     ]
   end
 

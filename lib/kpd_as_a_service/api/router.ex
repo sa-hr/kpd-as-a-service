@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Api.Router do
+defmodule KPD.Api.Router do
   @moduledoc """
   HTTP API router for KPD product classification service.
 
@@ -8,13 +8,13 @@ defmodule KpdAsAService.Api.Router do
 
   use Plug.Router
 
-  alias KpdAsAService.Api.Controllers.{
+  alias KPD.Api.Controllers.{
     ProductClassController,
     ProductClassByCodeController,
     SystemController
   }
 
-  alias KpdAsAService.Api.Helpers
+  alias KPD.Api.Helpers
 
   plug(Plug.Logger)
   plug(:match)

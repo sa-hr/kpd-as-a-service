@@ -1,5 +1,5 @@
-defmodule KpdAsAService.Repo do
+defmodule KPD.Repo do
   use Ecto.Repo,
-    otp_app: :kpd_as_a_service,
+    otp_app: :kpd,
     adapter: Ecto.Adapters.SQLite3
 end

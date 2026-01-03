@@ -70,7 +70,7 @@ defmodule Mix.Tasks.Kpd.Import do
 
     start_time = System.monotonic_time(:millisecond)
 
-    case KpdAsAService.Importer.load_from_file(file_path, batch_size: batch_size) do
+    case KPD.Importer.load_from_file(file_path, batch_size: batch_size) do
       {:ok, %{processed: processed, errors: errors}} ->
         elapsed = System.monotonic_time(:millisecond) - start_time
 
@@ -94,7 +94,7 @@ defmodule Mix.Tasks.Kpd.Import do
 
         if rebuild_fts do
           Mix.shell().info("\nRebuilding FTS index...")
-          KpdAsAService.Importer.rebuild_fts_index()
+          KPD.Importer.rebuild_fts_index()
           Mix.shell().info("✓ FTS index rebuilt")
         end
 

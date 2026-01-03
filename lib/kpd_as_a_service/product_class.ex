@@ -1,4 +1,4 @@
-defmodule KpdAsAService.ProductClass do
+defmodule KPD.ProductClass do
   @moduledoc """
   Ecto schema for KPD (Klasifikacija Proizvoda po Djelatnostima) product classes.
 

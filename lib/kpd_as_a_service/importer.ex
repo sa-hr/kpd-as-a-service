@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Importer do
+defmodule KPD.Importer do
   @moduledoc """
   Module for loading KPD (Klasifikacija Proizvoda po Djelatnostima) product classes
   from CSV files into the database.
@@ -20,8 +20,8 @@ defmodule KpdAsAService.Importer do
 
   NimbleCSV.define(KPDParser, separator: ",", escape: "\"")
 
-  alias KpdAsAService.Repo
-  alias KpdAsAService.ProductClass
+  alias KPD.Repo
+  alias KPD.ProductClass
 
   require Logger
 

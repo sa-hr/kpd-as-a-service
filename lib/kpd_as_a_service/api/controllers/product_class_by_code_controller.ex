@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
+defmodule KPD.Api.Controllers.ProductClassByCodeController do
   @moduledoc """
   Controller for product class operations by code.
 
@@ -7,14 +7,14 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
   """
 
   import Plug.Conn
-  alias KpdAsAService.Api.Helpers
+  alias KPD.Api.Helpers
 
   @doc """
   GET /api/product_classes/by_code/:code
   Get a single product class by its code.
   """
   def show(conn, code) do
-    case KpdAsAService.get_by_code(code) do
+    case KPD.get_by_code(code) do
       nil ->
         Helpers.json_response(conn, 404, %{error: "Product class not found"})
 
@@ -30,13 +30,13 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
   Get direct children of a product class.
   """
   def children(conn, code) do
-    case KpdAsAService.get_by_code(code) do
+    case KPD.get_by_code(code) do
       nil ->
         Helpers.json_response(conn, 404, %{error: "Product class not found"})
 
       product_class ->
         opts = Helpers.parse_hierarchy_opts(conn.query_params)
-        children = KpdAsAService.get_children(product_class.path, opts)
+        children = KPD.get_children(product_class.path, opts)
 
         conn
         |> put_resp_content_type("application/json")
@@ -49,13 +49,13 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
   Get all descendants of a product class.
   """
   def descendants(conn, code) do
-    case KpdAsAService.get_by_code(code) do
+    case KPD.get_by_code(code) do
       nil ->
         Helpers.json_response(conn, 404, %{error: "Product class not found"})
 
       product_class ->
         opts = Helpers.parse_hierarchy_opts(conn.query_params)
-        descendants = KpdAsAService.get_descendants(product_class.path, opts)
+        descendants = KPD.get_descendants(product_class.path, opts)
 
         conn
         |> put_resp_content_type("application/json")
@@ -68,12 +68,12 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
   Get all ancestors of a product class.
   """
   def ancestors(conn, code) do
-    case KpdAsAService.get_by_code(code) do
+    case KPD.get_by_code(code) do
       nil ->
         Helpers.json_response(conn, 404, %{error: "Product class not found"})
 
       product_class ->
-        ancestors = KpdAsAService.get_ancestors(product_class.path)
+        ancestors = KPD.get_ancestors(product_class.path)
 
         conn
         |> put_resp_content_type("application/json")
@@ -86,12 +86,12 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
   Get the full path from root to a product class.
   """
   def full_path(conn, code) do
-    case KpdAsAService.get_by_code(code) do
+    case KPD.get_by_code(code) do
       nil ->
         Helpers.json_response(conn, 404, %{error: "Product class not found"})
 
       product_class ->
-        full_path = KpdAsAService.get_full_path(product_class.path)
+        full_path = KPD.get_full_path(product_class.path)
 
         conn
         |> put_resp_content_type("application/json")
@@ -104,12 +104,12 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeController do
   Get the parent of a product class.
   """
   def parent(conn, code) do
-    case KpdAsAService.get_by_code(code) do
+    case KPD.get_by_code(code) do
       nil ->
         Helpers.json_response(conn, 404, %{error: "Product class not found"})
 
       product_class ->
-        case KpdAsAService.get_parent(product_class.path) do
+        case KPD.get_parent(product_class.path) do
           nil ->
             Helpers.json_response(conn, 404, %{error: "No parent exists (root level)"})
 

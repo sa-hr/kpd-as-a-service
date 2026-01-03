@@ -29,7 +29,7 @@ defmodule Mix.Tasks.Kpd.Benchmark do
 
   require Logger
 
-  alias KpdAsAService.Api.Router
+  alias KPD.Api.Router
 
   @shortdoc "Benchmarks API endpoint performance"
 
@@ -56,10 +56,10 @@ defmodule Mix.Tasks.Kpd.Benchmark do
     # Start only the required services (not the web server)
     Application.ensure_all_started(:telemetry)
     Application.ensure_all_started(:ecto_sql)
-    {:ok, _} = KpdAsAService.Repo.start_link()
+    {:ok, _} = KPD.Repo.start_link()
 
     # Suppress logging during benchmark unless verbose
-    unless verbose do
+    if !verbose do
       Logger.configure(level: :warning)
     end
 

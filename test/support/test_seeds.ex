@@ -1,4 +1,4 @@
-defmodule KpdAsAService.TestSeeds do
+defmodule KPD.TestSeeds do
   @moduledoc """
   Module for seeding test data from CSV files.
 
@@ -6,8 +6,8 @@ defmodule KpdAsAService.TestSeeds do
   before running the test suite.
   """
 
-  alias KpdAsAService.Importer
-  alias KpdAsAService.Repo
+  alias KPD.Importer
+  alias KPD.Repo
 
   @doc """
   Seeds the test database with real KPD data from the kpd-2025.csv.gz file.
@@ -42,7 +42,7 @@ defmodule KpdAsAService.TestSeeds do
   Useful for resetting the database between test runs.
   """
   def clear! do
-    Repo.delete_all(KpdAsAService.ProductClass)
+    Repo.delete_all(KPD.ProductClass)
     :ok
   end
 

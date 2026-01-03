@@ -1,4 +1,4 @@
-defmodule KpdAsAService do
+defmodule KPD do
   @moduledoc """
   KPD (Klasifikacija Proizvoda po Djelatnostima) as a Service.
 
@@ -9,8 +9,8 @@ defmodule KpdAsAService do
   """
 
   import Ecto.Query
-  alias KpdAsAService.Repo
-  alias KpdAsAService.ProductClass
+  alias KPD.Repo
+  alias KPD.ProductClass
 
   @type search_opts :: [
           {:lang, :hr | :en | :all},
@@ -31,10 +31,10 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.list()
+      iex> KPD.list()
       [%ProductClass{}, ...]
 
-      iex> KpdAsAService.list(level: 1)
+      iex> KPD.list(level: 1)
       [%ProductClass{level: 1}, ...]
 
   """
@@ -59,10 +59,10 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.get_by_code("A01.11.11")
+      iex> KPD.get_by_code("A01.11.11")
       %ProductClass{}
 
-      iex> KpdAsAService.get_by_code("INVALID")
+      iex> KPD.get_by_code("INVALID")
       nil
 
   """
@@ -92,7 +92,7 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.get_children("A.01")
+      iex> KPD.get_children("A.01")
       [%ProductClass{path: "A.01.1"}, %ProductClass{path: "A.01.2"}, ...]
 
   """
@@ -116,7 +116,7 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.get_descendants("A.01")
+      iex> KPD.get_descendants("A.01")
       [%ProductClass{path: "A.01.1"}, %ProductClass{path: "A.01.1.1"}, ...]
 
   """
@@ -139,10 +139,10 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.get_parent("A.01.1")
+      iex> KPD.get_parent("A.01.1")
       %ProductClass{path: "A.01"}
 
-      iex> KpdAsAService.get_parent("A")
+      iex> KPD.get_parent("A")
       nil
 
   """
@@ -159,7 +159,7 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.get_ancestors("A.01.1.1")
+      iex> KPD.get_ancestors("A.01.1.1")
       [%ProductClass{path: "A"}, %ProductClass{path: "A.01"}, %ProductClass{path: "A.01.1"}]
 
   """
@@ -183,7 +183,7 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.get_full_path("A.01.1")
+      iex> KPD.get_full_path("A.01.1")
       [%ProductClass{path: "A"}, %ProductClass{path: "A.01"}, %ProductClass{path: "A.01.1"}]
 
   """
@@ -209,10 +209,10 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.search("poljoprivreda")
+      iex> KPD.search("poljoprivreda")
       [%ProductClass{name_hr: "Poljoprivreda, šumarstvo i ribarstvo"}, ...]
 
-      iex> KpdAsAService.search("agriculture", lang: :en)
+      iex> KPD.search("agriculture", lang: :en)
       [%ProductClass{name_en: "Agriculture, forestry and fishing"}, ...]
 
   """
@@ -260,7 +260,7 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.search_by_code("A01")
+      iex> KPD.search_by_code("A01")
       [%ProductClass{code: "A01"}, %ProductClass{code: "A01.11"}, ...]
 
   """
@@ -286,10 +286,10 @@ defmodule KpdAsAService do
 
   ## Examples
 
-      iex> KpdAsAService.count()
+      iex> KPD.count()
       2847
 
-      iex> KpdAsAService.count(level: 1)
+      iex> KPD.count(level: 1)
       21
 
   """

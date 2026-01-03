@@ -1,9 +1,9 @@
-defmodule KpdAsAService.ImporterTest do
-  use KpdAsAService.DataCase, async: true
+defmodule KPD.ImporterTest do
+  use KPD.DataCase, async: true
 
-  alias KpdAsAService.Importer
-  alias KpdAsAService.ProductClass
-  alias KpdAsAService.Repo
+  alias KPD.Importer
+  alias KPD.ProductClass
+  alias KPD.Repo
 
   describe "transform_code_to_path/1" do
     test "transforms level 1 code (letter only)" do

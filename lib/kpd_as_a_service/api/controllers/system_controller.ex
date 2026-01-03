@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Api.Controllers.SystemController do
+defmodule KPD.Api.Controllers.SystemController do
   @moduledoc """
   Controller for system-level endpoints.
 
@@ -6,7 +6,7 @@ defmodule KpdAsAService.Api.Controllers.SystemController do
   """
 
   import Plug.Conn
-  alias KpdAsAService.Api.Helpers
+  alias KPD.Api.Helpers
 
   @doc """
   Returns health check status.
@@ -20,14 +20,14 @@ defmodule KpdAsAService.Api.Controllers.SystemController do
   """
   def stats(conn) do
     stats = %{
-      total: KpdAsAService.count(),
+      total: KPD.count(),
       by_level: %{
-        level_1_sections: KpdAsAService.count(level: 1),
-        level_2_divisions: KpdAsAService.count(level: 2),
-        level_3_groups: KpdAsAService.count(level: 3),
-        level_4_classes: KpdAsAService.count(level: 4),
-        level_5_categories: KpdAsAService.count(level: 5),
-        level_6_subcategories: KpdAsAService.count(level: 6)
+        level_1_sections: KPD.count(level: 1),
+        level_2_divisions: KPD.count(level: 2),
+        level_3_groups: KPD.count(level: 3),
+        level_4_classes: KPD.count(level: 4),
+        level_5_categories: KPD.count(level: 5),
+        level_6_subcategories: KPD.count(level: 6)
       }
     }
 
@@ -38,7 +38,7 @@ defmodule KpdAsAService.Api.Controllers.SystemController do
   Serves the OpenAPI specification.
   """
   def openapi(conn) do
-    openapi_path = Application.app_dir(:kpd_as_a_service, "priv/openapi.yaml")
+    openapi_path = Application.app_dir(:kpd, "priv/openapi.yaml")
 
     case File.read(openapi_path) do
       {:ok, content} ->

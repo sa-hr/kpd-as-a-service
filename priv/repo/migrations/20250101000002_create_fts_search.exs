@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Repo.Migrations.CreateFtsSearch do
+defmodule KPD.Repo.Migrations.CreateFtsSearch do
   use Ecto.Migration
 
   def up do

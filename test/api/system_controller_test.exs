@@ -1,16 +1,16 @@
-defmodule KpdAsAService.Api.Controllers.SystemControllerTest do
+defmodule KPD.Api.Controllers.SystemControllerTest do
   @moduledoc """
   Integration tests for the SystemController endpoints.
 
   Tests health checks, statistics, and API documentation.
   """
 
-  use KpdAsAService.DataCase, async: false
+  use KPD.DataCase, async: false
 
   import Plug.Test
   import Plug.Conn
 
-  alias KpdAsAService.Api.Router
+  alias KPD.Api.Router
 
   @opts Router.init([])
 

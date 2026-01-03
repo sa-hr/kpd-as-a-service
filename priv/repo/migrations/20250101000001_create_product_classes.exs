@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Repo.Migrations.CreateProductClasses do
+defmodule KPD.Repo.Migrations.CreateProductClasses do
   use Ecto.Migration
 
   def change do

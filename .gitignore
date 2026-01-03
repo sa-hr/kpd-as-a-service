@@ -17,7 +17,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-kpd_as_a_service-*.tar
+kpd-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/

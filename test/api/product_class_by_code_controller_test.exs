@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Api.Controllers.ProductClassByCodeControllerTest do
+defmodule KPD.Api.Controllers.ProductClassByCodeControllerTest do
   @moduledoc """
   Integration tests for the ProductClassByCodeController.
 
@@ -6,11 +6,11 @@ defmodule KpdAsAService.Api.Controllers.ProductClassByCodeControllerTest do
   hierarchical relationships (children, descendants, ancestors, parent, full path).
   """
 
-  use KpdAsAService.DataCase, async: false
+  use KPD.DataCase, async: false
 
   import Plug.Test
 
-  alias KpdAsAService.Api.Router
+  alias KPD.Api.Router
 
   @opts Router.init([])
 

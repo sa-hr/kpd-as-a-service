@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Application do
+defmodule KPD.Application do
   @moduledoc false
 
   use Application
@@ -7,17 +7,17 @@ defmodule KpdAsAService.Application do
   def start(_type, _args) do
     children =
       [
-        KpdAsAService.Repo
+        KPD.Repo
       ] ++ http_server_child()
 
-    opts = [strategy: :one_for_one, name: KpdAsAService.Supervisor]
+    opts = [strategy: :one_for_one, name: KPD.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
   defp http_server_child do
-    if Application.get_env(:kpd_as_a_service, :start_http_server, false) do
-      port = Application.get_env(:kpd_as_a_service, :http_port, 4000)
-      [{Bandit, plug: KpdAsAService.Api.Router, port: port}]
+    if Application.get_env(:kpd, :start_http_server, false) do
+      port = Application.get_env(:kpd, :http_port, 4000)
+      [{Bandit, plug: KPD.Api.Router, port: port}]
     else
       []
     end

@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Api.Helpers do
+defmodule KPD.Api.Helpers do
   @moduledoc """
   Shared helper functions for API controllers.
 

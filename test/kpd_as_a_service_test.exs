@@ -1,10 +1,10 @@
-defmodule KpdAsAServiceTest do
-  use KpdAsAService.DataCase, async: false
+defmodule KPDTest do
+  use KPD.DataCase, async: false
 
-  alias KpdAsAService.ProductClass
+  alias KPD.ProductClass
 
   # Tests use the seeded data from priv/data/kpd-2025.csv.gz
-  # which is loaded in test_helper.exs via KpdAsAService.TestSeeds
+  # which is loaded in test_helper.exs via KPD.TestSeeds
   #
   # Known stable data points from KPD 2025:
   # - 22 root sections (A through V)
@@ -17,7 +17,7 @@ defmodule KpdAsAServiceTest do
 
   describe "list/1" do
     test "lists product classes ordered by path with default limit of 100" do
-      results = KpdAsAService.list()
+      results = KPD.list()
 
       assert length(results) == 100
 
@@ -31,7 +31,7 @@ defmodule KpdAsAServiceTest do
     end
 
     test "lists product classes filtered by level" do
-      results = KpdAsAService.list(level: 1)
+      results = KPD.list(level: 1)
 
       # There are exactly 22 root sections in KPD 2025
       assert length(results) == 22
@@ -45,8 +45,8 @@ defmodule KpdAsAServiceTest do
     end
 
     test "respects limit and offset for pagination" do
-      page1 = KpdAsAService.list(limit: 5, offset: 0)
-      page2 = KpdAsAService.list(limit: 5, offset: 5)
+      page1 = KPD.list(limit: 5, offset: 0)
+      page2 = KPD.list(limit: 5, offset: 5)
 
       assert length(page1) == 5
       assert length(page2) == 5
@@ -60,7 +60,7 @@ defmodule KpdAsAServiceTest do
 
   describe "list_roots/1" do
     test "returns all 22 root sections" do
-      roots = KpdAsAService.list_roots()
+      roots = KPD.list_roots()
 
       assert length(roots) == 22
       assert Enum.all?(roots, &(&1.level == 1))
@@ -81,7 +81,7 @@ defmodule KpdAsAServiceTest do
                level: 1,
                name_hr: "PROIZVODI POLJOPRIVREDE, ŠUMARSTVA I RIBARSTVA",
                name_en: "PRODUCTS OF AGRICULTURE, FORESTRY AND FISHING"
-             } = KpdAsAService.get_by_code("A")
+             } = KPD.get_by_code("A")
     end
 
     test "returns A01 division with correct attributes" do
@@ -90,7 +90,7 @@ defmodule KpdAsAServiceTest do
                path: "A.01",
                level: 2,
                name_en: "Products of agriculture, hunting and related services"
-             } = KpdAsAService.get_by_code("A01")
+             } = KPD.get_by_code("A01")
     end
 
     test "returns A01.11.11 (level 6) with correct attributes" do
@@ -100,29 +100,29 @@ defmodule KpdAsAServiceTest do
                level: 6,
                name_hr: "Tvrda pšenica",
                name_en: "Durum wheat"
-             } = KpdAsAService.get_by_code("A01.11.11")
+             } = KPD.get_by_code("A01.11.11")
     end
 
     test "returns nil for non-existent code" do
-      assert KpdAsAService.get_by_code("NONEXISTENT999") == nil
+      assert KPD.get_by_code("NONEXISTENT999") == nil
     end
   end
 
   describe "get_by_code!/1" do
     test "returns product class when found" do
-      assert %ProductClass{code: "A"} = KpdAsAService.get_by_code!("A")
+      assert %ProductClass{code: "A"} = KPD.get_by_code!("A")
     end
 
     test "raises Ecto.NoResultsError when not found" do
       assert_raise Ecto.NoResultsError, fn ->
-        KpdAsAService.get_by_code!("NONEXISTENT999")
+        KPD.get_by_code!("NONEXISTENT999")
       end
     end
   end
 
   describe "get_children/2" do
     test "returns direct children of section A" do
-      children = KpdAsAService.get_children("A")
+      children = KPD.get_children("A")
 
       # Section A has 3 divisions: A01, A02, A03
       assert length(children) == 3
@@ -133,7 +133,7 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns direct children of A01 division" do
-      children = KpdAsAService.get_children("A.01")
+      children = KPD.get_children("A.01")
 
       # A01 has 6 groups: A01.1, A01.2, A01.3, A01.4, A01.6, A01.7 (no A01.5)
       assert length(children) == 6
@@ -144,14 +144,14 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns empty list for leaf node A01.11.11" do
-      children = KpdAsAService.get_children("A.01.1.1.1.1")
+      children = KPD.get_children("A.01.1.1.1.1")
       assert children == []
     end
   end
 
   describe "get_descendants/2" do
     test "returns all descendants of A01.11 (cereals)" do
-      descendants = KpdAsAService.get_descendants("A.01.1.1")
+      descendants = KPD.get_descendants("A.01.1.1")
 
       # Should have level 5 and level 6 descendants
       levels = descendants |> Enum.map(& &1.level) |> Enum.uniq() |> Enum.sort()
@@ -167,20 +167,20 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns empty list for leaf node" do
-      descendants = KpdAsAService.get_descendants("A.01.1.1.1.1")
+      descendants = KPD.get_descendants("A.01.1.1.1.1")
       assert descendants == []
     end
   end
 
   describe "get_parent/1" do
     test "returns parent of A01 division" do
-      parent = KpdAsAService.get_parent("A.01")
+      parent = KPD.get_parent("A.01")
 
       assert %ProductClass{code: "A", level: 1, path: "A"} = parent
     end
 
     test "returns parent of A01.11.11 (durum wheat)" do
-      parent = KpdAsAService.get_parent("A.01.1.1.1.1")
+      parent = KPD.get_parent("A.01.1.1.1.1")
 
       assert %ProductClass{
                code: "A01.11.1",
@@ -191,13 +191,13 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns nil for root section A" do
-      assert KpdAsAService.get_parent("A") == nil
+      assert KPD.get_parent("A") == nil
     end
   end
 
   describe "get_ancestors/1" do
     test "returns all ancestors of A01.11.11 (durum wheat)" do
-      ancestors = KpdAsAService.get_ancestors("A.01.1.1.1.1")
+      ancestors = KPD.get_ancestors("A.01.1.1.1.1")
 
       assert length(ancestors) == 5
 
@@ -209,21 +209,21 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns 3 ancestors for level 4 entry A01.11" do
-      ancestors = KpdAsAService.get_ancestors("A.01.1.1")
+      ancestors = KPD.get_ancestors("A.01.1.1")
 
       assert length(ancestors) == 3
       assert Enum.map(ancestors, & &1.level) == [1, 2, 3]
     end
 
     test "returns empty list for root section" do
-      ancestors = KpdAsAService.get_ancestors("A")
+      ancestors = KPD.get_ancestors("A")
       assert ancestors == []
     end
   end
 
   describe "get_full_path/1" do
     test "returns full path from root to A01.11 (cereals)" do
-      full_path = KpdAsAService.get_full_path("A.01.1.1")
+      full_path = KPD.get_full_path("A.01.1.1")
 
       assert length(full_path) == 4
 
@@ -235,7 +235,7 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns single entry for root section" do
-      full_path = KpdAsAService.get_full_path("A")
+      full_path = KPD.get_full_path("A")
 
       assert length(full_path) == 1
       assert [%ProductClass{code: "A", level: 1}] = full_path
@@ -244,7 +244,7 @@ defmodule KpdAsAServiceTest do
 
   describe "search/2" do
     test "finds 'Pšenica' (wheat) in Croatian names" do
-      results = KpdAsAService.search("Pšenica", lang: :hr)
+      results = KPD.search("Pšenica", lang: :hr)
 
       # Should find A01.11.1 (Wheat category)
       codes = Enum.map(results, & &1.code)
@@ -252,14 +252,14 @@ defmodule KpdAsAServiceTest do
     end
 
     test "finds 'Durum wheat' in English names" do
-      results = KpdAsAService.search("Durum wheat", lang: :en)
+      results = KPD.search("Durum wheat", lang: :en)
 
       codes = Enum.map(results, & &1.code)
       assert "A01.11.11" in codes
     end
 
     test "searches both languages by default" do
-      results = KpdAsAService.search("wheat")
+      results = KPD.search("wheat")
 
       # Should find wheat-related entries
       codes = Enum.map(results, & &1.code)
@@ -267,20 +267,20 @@ defmodule KpdAsAServiceTest do
     end
 
     test "filters search results by level" do
-      results = KpdAsAService.search("product", lang: :en, level: 1)
+      results = KPD.search("product", lang: :en, level: 1)
 
       assert Enum.all?(results, &(&1.level == 1))
     end
 
     test "respects limit parameter" do
-      results = KpdAsAService.search("product", lang: :en, limit: 3)
+      results = KPD.search("product", lang: :en, limit: 3)
       assert length(results) <= 3
     end
   end
 
   describe "search_by_code/2" do
     test "finds all entries starting with A01" do
-      results = KpdAsAService.search_by_code("A01")
+      results = KPD.search_by_code("A01")
 
       assert Enum.all?(results, &String.starts_with?(&1.code, "A01"))
 
@@ -291,12 +291,12 @@ defmodule KpdAsAServiceTest do
     end
 
     test "returns empty list for non-matching prefix" do
-      results = KpdAsAService.search_by_code("ZZZ999")
+      results = KPD.search_by_code("ZZZ999")
       assert results == []
     end
 
     test "respects limit parameter" do
-      results = KpdAsAService.search_by_code("A", limit: 5)
+      results = KPD.search_by_code("A", limit: 5)
       assert length(results) == 5
     end
   end
@@ -304,24 +304,24 @@ defmodule KpdAsAServiceTest do
   describe "count/1" do
     test "returns total count of 5828 entries" do
       # KPD 2025 has exactly 5828 product classes
-      assert KpdAsAService.count() == 5828
+      assert KPD.count() == 5828
     end
 
     test "returns correct counts by level" do
-      assert KpdAsAService.count(level: 1) == 22
-      assert KpdAsAService.count(level: 2) == 87
-      assert KpdAsAService.count(level: 3) == 284
-      assert KpdAsAService.count(level: 4) == 644
-      assert KpdAsAService.count(level: 5) == 1432
-      assert KpdAsAService.count(level: 6) == 3359
+      assert KPD.count(level: 1) == 22
+      assert KPD.count(level: 2) == 87
+      assert KPD.count(level: 3) == 284
+      assert KPD.count(level: 4) == 644
+      assert KPD.count(level: 5) == 1432
+      assert KPD.count(level: 6) == 3359
     end
 
     test "level counts sum to total" do
-      total = KpdAsAService.count()
+      total = KPD.count()
 
       level_sum =
         1..6
-        |> Enum.map(&KpdAsAService.count(level: &1))
+        |> Enum.map(&KPD.count(level: &1))
         |> Enum.sum()
 
       assert level_sum == total

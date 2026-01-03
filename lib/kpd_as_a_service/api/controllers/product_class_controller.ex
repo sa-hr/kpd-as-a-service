@@ -1,4 +1,4 @@
-defmodule KpdAsAService.Api.Controllers.ProductClassController do
+defmodule KPD.Api.Controllers.ProductClassController do
   @moduledoc """
   Controller for product class listing and search operations.
 
@@ -10,7 +10,7 @@ defmodule KpdAsAService.Api.Controllers.ProductClassController do
   """
 
   import Plug.Conn
-  alias KpdAsAService.Api.Helpers
+  alias KPD.Api.Helpers
 
   @doc """
   Lists product classes with optional filtering.
@@ -23,7 +23,7 @@ defmodule KpdAsAService.Api.Controllers.ProductClassController do
   """
   def list(conn) do
     opts = Helpers.parse_list_opts(conn.query_params)
-    product_classes = KpdAsAService.list(opts)
+    product_classes = KPD.list(opts)
 
     conn
     |> put_resp_content_type("application/json")
@@ -35,7 +35,7 @@ defmodule KpdAsAService.Api.Controllers.ProductClassController do
   """
   def roots(conn) do
     opts = Helpers.parse_list_opts(conn.query_params)
-    product_classes = KpdAsAService.list_roots(opts)
+    product_classes = KPD.list_roots(opts)
 
     conn
     |> put_resp_content_type("application/json")
@@ -66,7 +66,7 @@ defmodule KpdAsAService.Api.Controllers.ProductClassController do
 
       query ->
         opts = Helpers.parse_search_opts(conn.query_params)
-        product_classes = KpdAsAService.search(query, opts)
+        product_classes = KPD.search(query, opts)
 
         conn
         |> put_resp_content_type("application/json")
@@ -96,7 +96,7 @@ defmodule KpdAsAService.Api.Controllers.ProductClassController do
 
       code_prefix ->
         opts = Helpers.parse_code_search_opts(conn.query_params)
-        product_classes = KpdAsAService.search_by_code(code_prefix, opts)
+        product_classes = KPD.search_by_code(code_prefix, opts)
 
         conn
         |> put_resp_content_type("application/json")

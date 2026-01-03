@@ -175,7 +175,7 @@ Configure the HTTP server in your environment config:
 
 ```elixir
 # config/dev.exs
-config :kpd_as_a_service,
+config :kpd,
   start_http_server: true,
   http_port: 4000,
   enable_exsync: true
@@ -188,7 +188,7 @@ In development mode, the server automatically reloads code when files change (po
 To disable auto-reload:
 
 ```elixir
-config :kpd_as_a_service,
+config :kpd,
   enable_exsync: false
 ```
 
@@ -229,74 +229,74 @@ Data source: https://web.dzs.hr/app/klasus/
 
 ```elixir
 # List all product classes (paginated)
-KpdAsAService.list(limit: 100, offset: 0)
+KPD.list(limit: 100, offset: 0)
 
 # List only root categories (level 1)
-KpdAsAService.list_roots()
+KPD.list_roots()
 
 # List by specific level
-KpdAsAService.list(level: 3)
+KPD.list(level: 3)
 
 # Include expired entries
-KpdAsAService.list(include_expired: true)
+KPD.list(include_expired: true)
 ```
 
 ### Getting Single Entries
 
 ```elixir
 # Get by code
-KpdAsAService.get_by_code("A01.11")
+KPD.get_by_code("A01.11")
 
 # Get by ID
-KpdAsAService.get(123)
+KPD.get(123)
 ```
 
 ### Hierarchical Queries
 
 ```elixir
 # Get direct children
-KpdAsAService.get_children("A.01")
+KPD.get_children("A.01")
 
 # Get all descendants (all levels below)
-KpdAsAService.get_descendants("A.01")
+KPD.get_descendants("A.01")
 
 # Get parent
-KpdAsAService.get_parent("A.01.1")
+KPD.get_parent("A.01.1")
 
 # Get all ancestors (from root to immediate parent)
-KpdAsAService.get_ancestors("A.01.1.1.1.1")
+KPD.get_ancestors("A.01.1.1.1.1")
 
 # Get full path (ancestors + self)
-KpdAsAService.get_full_path("A.01.1.1.1.1")
+KPD.get_full_path("A.01.1.1.1.1")
 ```
 
 ### Searching
 
 ```elixir
 # Search in both Croatian and English names
-KpdAsAService.search("poljoprivreda")
+KPD.search("poljoprivreda")
 
 # Search only Croatian names
-KpdAsAService.search("pšenica", lang: :hr)
+KPD.search("pšenica", lang: :hr)
 
 # Search only English names
-KpdAsAService.search("agriculture", lang: :en)
+KPD.search("agriculture", lang: :en)
 
 # Search with filters
-KpdAsAService.search("wheat", lang: :en, level: 6, limit: 10)
+KPD.search("wheat", lang: :en, level: 6, limit: 10)
 
 # Search by code prefix
-KpdAsAService.search_by_code("A01")
+KPD.search_by_code("A01")
 ```
 
 ### Counting
 
 ```elixir
 # Total count
-KpdAsAService.count()
+KPD.count()
 
 # Count by level
-KpdAsAService.count(level: 1)
+KPD.count(level: 1)
 ```
 
 ## Architecture

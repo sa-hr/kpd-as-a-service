@@ -1,13 +1,13 @@
-defmodule KpdAsAService.Api.Controllers.ProductClassControllerTest do
+defmodule KPD.Api.Controllers.ProductClassControllerTest do
   @moduledoc """
   Tests for ProductClassController - listing and search operations.
   """
 
-  use KpdAsAService.DataCase, async: false
+  use KPD.DataCase, async: false
 
   import Plug.Test
 
-  alias KpdAsAService.Api.Router
+  alias KPD.Api.Router
 
   @opts Router.init([])
 
