@@ -39,8 +39,16 @@ defmodule KPD.Importer do
   rows. The `processed` count represents successfully upserted rows.
   """
   @spec load_from_file(String.t(), keyword()) ::
-          {:ok, %{processed: non_neg_integer(), errors: list()}}
+          {:ok, %{processed: non_neg_integer(), errors: list()}} | {:error, term()}
   def load_from_file(file_path, opts \\ []) do
+    if File.exists?(file_path) do
+      do_load_from_file(file_path, opts)
+    else
+      {:error, {:file_not_found, file_path}}
+    end
+  end
+
+  defp do_load_from_file(file_path, opts) do
     on_conflict =
       Keyword.get(
         opts,
