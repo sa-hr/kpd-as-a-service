@@ -32,7 +32,8 @@ defmodule KpdAsAService.MixProject do
       {:nimble_csv, "~> 1.2"},
       {:bandit, "~> 1.8"},
       {:plug, "~> 1.16"},
-      {:exsync, "~> 0.4", only: :dev}
+      {:exsync, "~> 0.4", only: :dev},
+      {:tidewave, "~> 0.4", only: :dev}
     ]
   end
 
@@ -41,7 +42,9 @@ defmodule KpdAsAService.MixProject do
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      start:
+        "run --no-halt -e 'Agent.start(fn -> Bandit.start_link(plug: Tidewave, port: 8080) end)'"
     ]
   end
 end
