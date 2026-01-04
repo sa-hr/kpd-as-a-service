@@ -18,7 +18,16 @@ defmodule KPD.Api.Controllers.ProductClassControllerTest do
         |> Router.call(@opts)
 
       assert %{
-               "data" => [%{"code" => _, "name_hr" => _, "name_en" => _, "level" => _} | _],
+               "data" => [
+                 %{
+                   "full_code" => _,
+                   "official_code" => _,
+                   "name_hr" => _,
+                   "name_en" => _,
+                   "level" => _
+                 }
+                 | _
+               ],
                "count" => count
              } = JSON.decode!(conn.resp_body)
 
@@ -73,8 +82,8 @@ defmodule KPD.Api.Controllers.ProductClassControllerTest do
         |> Map.get(:resp_body)
         |> JSON.decode!()
 
-      page1_codes = MapSet.new(page1, & &1["code"])
-      page2_codes = MapSet.new(page2, & &1["code"])
+      page1_codes = MapSet.new(page1, & &1["full_code"])
+      page2_codes = MapSet.new(page2, & &1["full_code"])
 
       assert MapSet.disjoint?(page1_codes, page2_codes)
     end
@@ -88,10 +97,21 @@ defmodule KPD.Api.Controllers.ProductClassControllerTest do
 
       assert conn.status == 200
 
-      %{"data" => items, "count" => count} = JSON.decode!(conn.resp_body)
-
-      assert count > 0
+      assert %{"data" => items, "count" => 22} = JSON.decode!(conn.resp_body)
       assert Enum.all?(items, &(&1["level"] == 1))
+
+      assert [
+               %{
+                 "end_date" => nil,
+                 "full_code" => "A",
+                 "level" => 1,
+                 "name_en" => "PRODUCTS OF AGRICULTURE, FORESTRY AND FISHING",
+                 "name_hr" => "PROIZVODI POLJOPRIVREDE, ŠUMARSTVA I RIBARSTVA",
+                 "official_code" => "A",
+                 "start_date" => "2025-01-01"
+               }
+               | _
+             ] = items
     end
   end
 
@@ -157,7 +177,7 @@ defmodule KPD.Api.Controllers.ProductClassControllerTest do
       assert conn.status == 200
 
       %{"data" => items} = JSON.decode!(conn.resp_body)
-      assert Enum.all?(items, &String.starts_with?(&1["code"], "A"))
+      assert Enum.all?(items, &String.starts_with?(&1["full_code"], "A"))
     end
 
     test "returns 400 when code is missing" do

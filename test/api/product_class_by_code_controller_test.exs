@@ -16,7 +16,7 @@ defmodule KPD.Api.Controllers.ProductClassByCodeControllerTest do
 
   # Helper to get a product class code at a specific level
   defp get_code_at_level(level) do
-    %{"data" => [%{"code" => code} | _]} =
+    %{"data" => [%{"full_code" => code} | _]} =
       conn(:get, "/api/product_classes?level=#{level}&limit=1")
       |> Router.call(@opts)
       |> Map.get(:resp_body)
@@ -26,7 +26,7 @@ defmodule KPD.Api.Controllers.ProductClassByCodeControllerTest do
   end
 
   defp get_root_code do
-    %{"data" => [%{"code" => code} | _]} =
+    %{"data" => [%{"full_code" => code} | _]} =
       conn(:get, "/api/product_classes/roots?limit=1")
       |> Router.call(@opts)
       |> Map.get(:resp_body)
@@ -44,7 +44,7 @@ defmodule KPD.Api.Controllers.ProductClassByCodeControllerTest do
         |> Router.call(@opts)
 
       assert conn.status == 200
-      assert %{"data" => %{"code" => ^code}} = JSON.decode!(conn.resp_body)
+      assert %{"data" => %{"full_code" => ^code}} = JSON.decode!(conn.resp_body)
     end
 
     test "does not expose internal fields (id, path)" do
