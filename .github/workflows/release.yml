@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-
+
+      - name: Cache _build
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}-${{ github.sha }}
+          restore-keys: |
+            build-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}-
+            build-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: mix do local.rebar --force + local.hex --force + deps.get
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Run tests
+        run: mix test
+
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: macos-13
+            target: macos_intel
+            artifact_name: kpd_server_macos_intel
+          - os: macos-14
+            target: macos_apple_silicon
+            artifact_name: kpd_server_macos_apple_silicon
+          - os: ubuntu-latest
+            target: linux_amd64
+            artifact_name: kpd_server_linux_amd64
+          - os: ubuntu-24.04-arm
+            target: linux_arm64
+            artifact_name: kpd_server_linux_arm64
+    runs-on: ${{ matrix.os }}
+    env:
+      MIX_ENV: prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Cache _build
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: build-prod-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/mix.lock') }}-${{ github.sha }}
+          restore-keys: |
+            build-prod-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/mix.lock') }}-
+            build-prod-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Install dependencies
+        run: mix do local.rebar --force + local.hex --force + deps.get
+
+      - name: Build release
+        run: mix release kpd_server --overwrite
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: burrito_out/kpd_server_${{ matrix.target }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release_assets
+          cp artifacts/kpd_server_macos_intel/kpd_server_macos_intel release_assets/
+          cp artifacts/kpd_server_macos_apple_silicon/kpd_server_macos_apple_silicon release_assets/
+          cp artifacts/kpd_server_linux_amd64/kpd_server_linux_amd64 release_assets/
+          cp artifacts/kpd_server_linux_arm64/kpd_server_linux_arm64 release_assets/
+          chmod +x release_assets/*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          files: release_assets/*
+          generate_release_notes: true
