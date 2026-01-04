@@ -395,6 +395,15 @@ MIX_ENV=prod BURRITO_TARGET=linux_arm64 mix release
 
 The built executables will be in the `burrito_out/` directory.
 
+### Building the Docker image
+
+```bash
+docker buildx build \
+    --platform linux/amd64,linux/arm64 \
+    --tag your-registry/kpd-server:latest \
+    --push .
+```
+
 ### Running the Executable
 
 Run the server with default settings (port 4000, bind to 0.0.0.0):
