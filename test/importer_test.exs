@@ -99,8 +99,8 @@ defmodule KPD.ImporterTest do
       assert {:ok, %{processed: 6, errors: []}} = result
 
       # Verify level 1
-      level1 = Repo.get_by(ProductClass, code: "A")
-      assert level1.code == "A"
+      level1 = Repo.get_by(ProductClass, full_code: "A")
+      assert level1.full_code == "A"
       assert level1.path == "A"
       assert level1.level == 1
       assert level1.name_hr == "PROIZVODI POLJOPRIVREDE"
@@ -109,28 +109,28 @@ defmodule KPD.ImporterTest do
       assert is_nil(level1.end_date)
 
       # Verify level 2
-      level2 = Repo.get_by(ProductClass, code: "A01")
+      level2 = Repo.get_by(ProductClass, full_code: "A01")
       assert level2.path == "A.01"
       assert level2.level == 2
       assert level2.name_hr == "Biljni i stočarski proizvodi"
 
       # Verify level 3
-      level3 = Repo.get_by(ProductClass, code: "A01.1")
+      level3 = Repo.get_by(ProductClass, full_code: "A01.1")
       assert level3.path == "A.01.1"
       assert level3.level == 3
 
       # Verify level 4
-      level4 = Repo.get_by(ProductClass, code: "A01.11")
+      level4 = Repo.get_by(ProductClass, full_code: "A01.11")
       assert level4.path == "A.01.1.1"
       assert level4.level == 4
 
       # Verify level 5
-      level5 = Repo.get_by(ProductClass, code: "A01.11.1")
+      level5 = Repo.get_by(ProductClass, full_code: "A01.11.1")
       assert level5.path == "A.01.1.1.1"
       assert level5.level == 5
 
       # Verify level 6
-      level6 = Repo.get_by(ProductClass, code: "A01.11.11")
+      level6 = Repo.get_by(ProductClass, full_code: "A01.11.11")
       assert level6.path == "A.01.1.1.1.1"
       assert level6.level == 6
       assert level6.name_en == "Durum wheat"
@@ -153,7 +153,7 @@ defmodule KPD.ImporterTest do
       {:ok, %{processed: 1}} = Importer.load_from_file(updated_path)
 
       # Verify update
-      updated = Repo.get_by(ProductClass, code: "A")
+      updated = Repo.get_by(ProductClass, full_code: "A")
       assert updated.name_hr == "UPDATED NAME HR"
       assert updated.name_en == "UPDATED NAME EN"
     end
@@ -169,7 +169,7 @@ defmodule KPD.ImporterTest do
 
       {:ok, %{processed: 1}} = Importer.load_from_file(csv_path)
 
-      record = Repo.get_by(ProductClass, code: "X")
+      record = Repo.get_by(ProductClass, full_code: "X")
       assert record.start_date == ~D[2025-01-01]
       assert record.end_date == ~D[2025-12-31]
     end
@@ -221,7 +221,7 @@ defmodule KPD.ImporterTest do
 
       {:ok, %{processed: 1}} = Importer.load_from_file(csv_path)
 
-      record = Repo.get_by(ProductClass, code: "W")
+      record = Repo.get_by(ProductClass, full_code: "W")
       assert record.name_hr == "Čćžšđ"
     end
 
@@ -253,15 +253,15 @@ defmodule KPD.ImporterTest do
       {:ok, %{processed: 2, errors: []}} = Importer.load_from_file(gz_path)
 
       # Verify records were inserted
-      level1 = Repo.get_by(ProductClass, code: "H")
-      assert level1.code == "H"
+      level1 = Repo.get_by(ProductClass, full_code: "H")
+      assert level1.full_code == "H"
       assert level1.path == "H"
       assert level1.level == 1
       assert level1.name_hr == "Gzipped Product"
       assert level1.name_en == "Gzipped Product EN"
 
-      level2 = Repo.get_by(ProductClass, code: "H01")
-      assert level2.code == "H01"
+      level2 = Repo.get_by(ProductClass, full_code: "H01")
+      assert level2.full_code == "H01"
       assert level2.path == "H.01"
       assert level2.level == 2
       assert level2.name_hr == "Gzipped Level 2"
@@ -282,7 +282,7 @@ defmodule KPD.ImporterTest do
 
       {:ok, %{processed: 1}} = Importer.load_from_file(csv_path)
 
-      record = Repo.get_by(ProductClass, code: "F")
+      record = Repo.get_by(ProductClass, full_code: "F")
       assert is_nil(record.end_date)
     end
 
@@ -297,8 +297,8 @@ defmodule KPD.ImporterTest do
 
       {:ok, %{processed: 1}} = Importer.load_from_file(csv_path)
 
-      record = Repo.get_by(ProductClass, code: "G")
-      assert record.code == "G"
+      record = Repo.get_by(ProductClass, full_code: "G")
+      assert record.full_code == "G"
       assert record.name_hr == "Whitespace Test"
       assert record.name_en == "Whitespace Test EN"
     end
@@ -315,11 +315,11 @@ defmodule KPD.ImporterTest do
 
       {:ok, %{processed: 2}} = Importer.load_from_file(csv_path)
 
-      record1 = Repo.get_by(ProductClass, code: "V01.11.20")
+      record1 = Repo.get_by(ProductClass, full_code: "V01.11.20")
       assert record1.path == "V.01.1.1.2.0"
       assert record1.level == 6
 
-      record2 = Repo.get_by(ProductClass, code: "V01.11.50")
+      record2 = Repo.get_by(ProductClass, full_code: "V01.11.50")
       assert record2.path == "V.01.1.1.5.0"
       assert record2.level == 6
     end
@@ -343,7 +343,7 @@ defmodule KPD.ImporterTest do
       assert :ok = Importer.rebuild_fts_index()
 
       # Verify the record exists in main table after rebuild
-      record = Repo.get_by(ProductClass, code: "R")
+      record = Repo.get_by(ProductClass, full_code: "R")
       assert record != nil
       assert record.name_hr == "Rebuild Test HR"
 

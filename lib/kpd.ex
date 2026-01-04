@@ -57,9 +57,15 @@ defmodule KPD do
   @doc """
   Gets a single product class by its code.
 
+  Accepts both full codes (with letter prefix, e.g., "A01.11.11") and
+  official codes (without letter prefix, e.g., "01.11.11").
+
   ## Examples
 
       iex> KPD.get_by_code("A01.11.11")
+      %ProductClass{}
+
+      iex> KPD.get_by_code("01.11.11")
       %ProductClass{}
 
       iex> KPD.get_by_code("INVALID")
@@ -67,24 +73,34 @@ defmodule KPD do
 
   """
   @spec get_by_code(String.t()) :: ProductClass.t() | nil
-  def get_by_code(code) when is_binary(code) do
-    Repo.get_by(ProductClass, code: code)
+  # Full code starting with a letter (A-Z)
+  def get_by_code(<<letter, _rest::binary>> = full_code) when letter in ?A..?Z do
+    Repo.get_by(ProductClass, full_code: full_code)
   end
+
+  # Official code starting with a digit (0-9)
+  def get_by_code(<<digit, _rest::binary>> = official_code) when digit in ?0..?9 do
+    Repo.get_by(ProductClass, official_code: official_code)
+  end
+
+  # Empty or other codes - return nil
+  def get_by_code(_code), do: nil
 
   @doc """
   Gets a single product class by its code, raises if not found.
+
+  Accepts both full codes (with letter prefix, e.g., "A01.11.11") and
+  official codes (without letter prefix, e.g., "01.11.11").
   """
   @spec get_by_code!(String.t()) :: ProductClass.t()
-  def get_by_code!(code) when is_binary(code) do
-    Repo.get_by!(ProductClass, code: code)
+  # Full code starting with a letter (A-Z)
+  def get_by_code!(<<letter, _rest::binary>> = full_code) when letter in ?A..?Z do
+    Repo.get_by!(ProductClass, full_code: full_code)
   end
 
-  @doc """
-  Gets a single product class by its ID.
-  """
-  @spec get(integer()) :: ProductClass.t() | nil
-  def get(id) when is_integer(id) do
-    Repo.get(ProductClass, id)
+  # Official code starting with a digit (0-9)
+  def get_by_code!(<<digit, _rest::binary>> = official_code) when digit in ?0..?9 do
+    Repo.get_by!(ProductClass, official_code: official_code)
   end
 
   @doc """
@@ -238,7 +254,7 @@ defmodule KPD do
     fts_query = """
     SELECT pc.*
     FROM product_classes pc
-    INNER JOIN product_classes_fts fts ON pc.id = fts.rowid
+    INNER JOIN product_classes_fts fts ON pc.rowid = fts.rowid
     WHERE product_classes_fts MATCH ?
     ORDER BY fts.rank
     LIMIT ?
@@ -261,7 +277,7 @@ defmodule KPD do
   ## Examples
 
       iex> KPD.search_by_code("A01")
-      [%ProductClass{code: "A01"}, %ProductClass{code: "A01.11"}, ...]
+      [%ProductClass{full_code: "A01"}, %ProductClass{full_code: "A01.11"}, ...]
 
   """
   @spec search_by_code(String.t(), keyword()) :: [ProductClass.t()]
@@ -271,9 +287,9 @@ defmodule KPD do
     pattern = "#{code_prefix}%"
 
     ProductClass
-    |> where([pc], like(pc.code, ^pattern))
+    |> where([pc], like(pc.full_code, ^pattern))
     |> maybe_filter_expired(include_expired)
-    |> order_by([pc], asc: pc.code)
+    |> order_by([pc], asc: pc.full_code)
     |> limit(^limit)
     |> Repo.all()
   end
@@ -358,16 +374,14 @@ defmodule KPD do
 
   defp to_product_class(map) do
     %ProductClass{
-      id: map["id"],
-      code: map["code"],
+      full_code: map["full_code"],
+      official_code: map["official_code"],
       path: map["path"],
       name_hr: map["name_hr"],
       name_en: map["name_en"],
       start_date: parse_date_from_db(map["start_date"]),
       end_date: parse_date_from_db(map["end_date"]),
-      level: map["level"],
-      inserted_at: parse_datetime_from_db(map["inserted_at"]),
-      updated_at: parse_datetime_from_db(map["updated_at"])
+      level: map["level"]
     }
   end
 
@@ -381,15 +395,4 @@ defmodule KPD do
   end
 
   defp parse_date_from_db(%Date{} = date), do: date
-
-  defp parse_datetime_from_db(nil), do: nil
-
-  defp parse_datetime_from_db(datetime_string) when is_binary(datetime_string) do
-    case DateTime.from_iso8601(datetime_string) do
-      {:ok, datetime, _} -> datetime
-      _ -> NaiveDateTime.from_iso8601!(datetime_string) |> DateTime.from_naive!("Etc/UTC")
-    end
-  end
-
-  defp parse_datetime_from_db(%DateTime{} = datetime), do: datetime
 end

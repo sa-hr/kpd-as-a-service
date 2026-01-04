@@ -98,13 +98,13 @@ defmodule Mix.Tasks.Kpd.Benchmark do
 
   defp gather_test_data(router_opts) do
     # Get a root code for hierarchy tests
-    %{"data" => [%{"code" => root_code} | _]} =
+    %{"data" => [%{"full_code" => root_code} | _]} =
       make_request(:get, "/api/product_classes/roots?limit=1", router_opts)
       |> Map.get(:resp_body)
       |> JSON.decode!()
 
     # Get a level 3 code for deeper hierarchy tests
-    %{"data" => [%{"code" => level3_code} | _]} =
+    %{"data" => [%{"full_code" => level3_code} | _]} =
       make_request(:get, "/api/product_classes?level=3&limit=1", router_opts)
       |> Map.get(:resp_body)
       |> JSON.decode!()

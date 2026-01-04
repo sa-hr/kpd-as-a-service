@@ -37,21 +37,14 @@ defmodule KPD.Api.Helpers do
 
   defp product_class_to_map(pc) do
     %{
-      full_code: pc.code,
-      official_code: strip_letter_prefix(pc.code),
+      full_code: pc.full_code,
+      official_code: pc.official_code,
       name_hr: pc.name_hr,
       name_en: pc.name_en,
       level: pc.level,
       start_date: date_to_string(pc.start_date),
       end_date: date_to_string(pc.end_date)
     }
-  end
-
-  defp strip_letter_prefix(code) when is_binary(code) do
-    case Regex.run(~r/^[A-Z](.+)$/, code) do
-      [_, rest] -> rest
-      nil -> code
-    end
   end
 
   defp date_to_string(nil), do: nil

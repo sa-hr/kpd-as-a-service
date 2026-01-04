@@ -4,7 +4,7 @@ defmodule KPD.Importer do
   from CSV files into the database.
 
   The CSV is expected to have the following columns:
-  - Službena šifra: Official code (redundant, already part of full code)
+  - Službena šifra: Official code (numeric code without letter prefix)
   - Datum početka: Start date (DD.MM.YYYY format)
   - Datum završetka: End date (DD.MM.YYYY format, may be empty)
   - Službeni naziv HR: Official Croatian name
@@ -53,7 +53,7 @@ defmodule KPD.Importer do
       Keyword.get(
         opts,
         :on_conflict,
-        {:replace, [:name_hr, :name_en, :start_date, :end_date, :updated_at]}
+        {:replace, [:name_hr, :name_en, :start_date, :end_date]}
       )
 
     batch_size = Keyword.get(opts, :batch_size, 500)
@@ -107,7 +107,7 @@ defmodule KPD.Importer do
     {processed_count, _} =
       Repo.insert_all(ProductClass, rows,
         on_conflict: on_conflict,
-        conflict_target: :code
+        conflict_target: :full_code
       )
 
     %{
@@ -203,8 +203,8 @@ defmodule KPD.Importer do
 
     # Repopulate from main table
     Repo.query!("""
-    INSERT INTO product_classes_fts(rowid, code, name_hr, name_en)
-    SELECT id, code, name_hr, name_en FROM product_classes;
+    INSERT INTO product_classes_fts(rowid, full_code, name_hr, name_en)
+    SELECT rowid, full_code, name_hr, name_en FROM product_classes;
     """)
 
     Logger.info("FTS index rebuilt successfully")
@@ -225,7 +225,7 @@ defmodule KPD.Importer do
 
   defp parse_row(row, line_num) when length(row) >= 9 do
     [
-      _code,
+      official_code,
       start_date_str,
       end_date_str,
       name_hr,
@@ -236,8 +236,6 @@ defmodule KPD.Importer do
       full_code
     ] = Enum.take(row, 9)
 
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
-
     with {:ok, start_date} <- parse_date(start_date_str),
          {:ok, end_date} <- parse_date(end_date_str),
          {:ok, level} <- parse_level(level_str),
@@ -245,15 +243,14 @@ defmodule KPD.Importer do
          :ok <- validate_level(path, level) do
       {:ok,
        %{
-         code: String.trim(full_code),
+         full_code: String.trim(full_code),
+         official_code: String.trim(official_code),
          path: path,
          name_hr: String.trim(name_hr),
          name_en: String.trim(name_en),
          start_date: start_date,
          end_date: end_date,
-         level: level,
-         inserted_at: now,
-         updated_at: now
+         level: level
        }}
     end
   rescue

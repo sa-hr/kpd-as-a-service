@@ -17,32 +17,29 @@ defmodule KPD.ProductClass do
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-          id: integer() | nil,
-          code: String.t(),
+          full_code: String.t(),
+          official_code: String.t(),
           path: String.t(),
           name_hr: String.t(),
           name_en: String.t(),
           start_date: Date.t() | nil,
           end_date: Date.t() | nil,
-          level: integer(),
-          inserted_at: DateTime.t() | nil,
-          updated_at: DateTime.t() | nil
+          level: integer()
         }
 
+  @primary_key {:full_code, :string, autogenerate: false}
   schema "product_classes" do
-    field(:code, :string)
+    field(:official_code, :string)
     field(:path, :string)
     field(:name_hr, :string)
     field(:name_en, :string)
     field(:start_date, :date)
     field(:end_date, :date)
     field(:level, :integer)
-
-    timestamps(type: :utc_datetime)
   end
 
-  @required_fields ~w(code path name_hr name_en level)a
-  @optional_fields ~w(start_date end_date)a
+  @required_fields ~w(full_code path name_hr name_en level)a
+  @optional_fields ~w(start_date end_date official_code)a
 
   @doc """
   Creates a changeset for a ProductClass.
@@ -54,7 +51,7 @@ defmodule KPD.ProductClass do
     |> validate_required(@required_fields)
     |> validate_inclusion(:level, 1..6)
     |> validate_path_matches_level()
-    |> unique_constraint(:code)
+    |> unique_constraint(:full_code)
   end
 
   @doc """

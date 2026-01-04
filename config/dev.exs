@@ -5,7 +5,8 @@ config :kpd, KPD.Repo,
   database: Path.expand("../priv/repo/kpd_dev.db", __DIR__),
   pool_size: 5,
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true
+  show_sensitive_data_on_connection_error: true,
+  journal_mode: :delete
 
 # HTTP server configuration
 config :kpd,
