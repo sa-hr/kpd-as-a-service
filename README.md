@@ -137,9 +137,10 @@ All responses are JSON. List responses include a `data` array and `count`:
 {
   "data": [
     {
-      "code": "A",
-      "name_hr": "Poljoprivreda, šumarstvo i ribarstvo",
-      "name_en": "Agriculture, forestry and fishing",
+      "full_code": "A",
+      "official_code": "A",
+      "name_hr": "PROIZVODI POLJOPRIVREDE, ŠUMARSTVA I RIBARSTVA",
+      "name_en": "PRODUCTS OF AGRICULTURE, FORESTRY AND FISHING",
       "level": 1,
       "start_date": "2025-01-01",
       "end_date": null
@@ -154,7 +155,8 @@ Single item responses wrap the item in `data`:
 ```json
 {
   "data": {
-    "code": "A",
+    "full_code": "A",
+    "official_code": "A",
     "name_hr": "...",
     ...
   }
@@ -246,30 +248,33 @@ KPD.list(include_expired: true)
 ### Getting Single Entries
 
 ```elixir
-# Get by code
+# Get by full code (with letter prefix)
 KPD.get_by_code("A01.11")
 
-# Get by ID
-KPD.get(123)
+# Get by official code (without letter prefix)
+KPD.get_by_code("01.11")
 ```
 
 ### Hierarchical Queries
 
 ```elixir
-# Get direct children
-KPD.get_children("A.01")
+# First get a product class to obtain its path
+product_class = KPD.get_by_code("A01")
+
+# Get direct children (using the path)
+KPD.get_children(product_class.path)
 
 # Get all descendants (all levels below)
-KPD.get_descendants("A.01")
+KPD.get_descendants(product_class.path)
 
 # Get parent
-KPD.get_parent("A.01.1")
+KPD.get_parent(product_class.path)
 
 # Get all ancestors (from root to immediate parent)
-KPD.get_ancestors("A.01.1.1.1.1")
+KPD.get_ancestors(product_class.path)
 
 # Get full path (ancestors + self)
-KPD.get_full_path("A.01.1.1.1.1")
+KPD.get_full_path(product_class.path)
 ```
 
 ### Searching
@@ -307,16 +312,16 @@ KPD.count(level: 1)
 
 The main table `product_classes` stores all KPD entries:
 
-| Column      | Type     | Description                    |
-|-------------|----------|--------------------------------|
-| id          | integer  | Primary key                    |
-| code        | string   | Official KPD code (unique)     |
-| path        | string   | Dot-separated path for hierarchy |
-| name_hr     | string   | Croatian name                  |
-| name_en     | string   | English name                   |
-| start_date  | date     | Validity start date            |
-| end_date    | date     | Validity end date (nullable)   |
-| level       | integer  | Hierarchy level (1-6)          |
+| Column        | Type     | Description                           |
+|---------------|----------|---------------------------------------|
+| full_code     | string   | Primary key (e.g., "A", "A01.11")       |
+| official_code | string   | Official DZS code (e.g., "A", "01.11")  |
+| path          | string   | Dot-separated path for hierarchy      |
+| name_hr       | string   | Croatian name                         |
+| name_en       | string   | English name                          |
+| start_date    | date     | Validity start date                   |
+| end_date      | date     | Validity end date (nullable)          |
+| level         | integer  | Hierarchy level (1-6)                 |
 
 ### FTS5 Trigram Search
 
